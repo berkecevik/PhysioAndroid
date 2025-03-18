@@ -64,6 +64,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
     private var cameraFacing = CameraSelector.LENS_FACING_BACK
+    private var frameSkipCounter = 0
 
     /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ExecutorService
@@ -331,7 +332,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
         // ImageAnalysis. Using RGBA 8888 to match how our models work
         imageAnalyzer = ImageAnalysis.Builder()
-            .setTargetResolution(Size(480, 360))  // ✅ Lower resolution for faster processing
+            .setTargetResolution(Size(320, 240))  // ✅ Lower resolution for faster processing
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
@@ -360,11 +361,10 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         }
     }
 
-    private var frameSkipCounter = 0
 
     private fun detectPose(imageProxy: ImageProxy) {
         frameSkipCounter++
-        if (frameSkipCounter % 2 != 0) {  // Skip every other frame
+        if (frameSkipCounter % 3 != 0) {
             imageProxy.close()
             return
         }

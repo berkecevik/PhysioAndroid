@@ -13,45 +13,45 @@ import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 
-class OverlayView(context: Context?, attrs: AttributeSet?) :
-    View(context, attrs) {
+class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     private var results: PoseLandmarkerResult? = null
-    private var pointPaint = Paint()
-    private var linePaint = Paint()
+    private val pointPaint = Paint().apply {
+        color = Color.RED
+        strokeWidth = LANDMARK_STROKE_WIDTH
+        style = Paint.Style.FILL
+    }
+    private val linePaint = Paint().apply {
+        color = ContextCompat.getColor(context!!, R.color.mp_color_primary)
+        strokeWidth = LANDMARK_STROKE_WIDTH
+        style = Paint.Style.STROKE
+    }
+    private val textPaint = Paint().apply {
+        color = Color.YELLOW
+        textSize = 40f
+        typeface = android.graphics.Typeface.DEFAULT_BOLD
+    }
 
     private var scaleFactor: Float = 1f
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
-
-    init {
-        initPaints()
-    }
+    private var previousResults: PoseLandmarkerResult? = null
 
     fun clear() {
         results = null
-        pointPaint.reset()
-        linePaint.reset()
         invalidate()
-        initPaints()
-    }
-
-    private fun initPaints() {
-        linePaint.color =
-            ContextCompat.getColor(context!!, R.color.mp_color_primary)
-        linePaint.strokeWidth = LANDMARK_STROKE_WIDTH
-        linePaint.style = Paint.Style.STROKE
-
-        pointPaint.color = Color.RED
-        pointPaint.strokeWidth = LANDMARK_STROKE_WIDTH
-        pointPaint.style = Paint.Style.FILL
     }
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         results?.let { poseLandmarkerResult ->
-            for (landmark in poseLandmarkerResult.landmarks()) {
+            if (!hasSignificantChange(poseLandmarkerResult)) return
+
+            val landmarks = poseLandmarkerResult.landmarks()
+            for (landmark in landmarks) {
+                // Draw Points
                 for (normalizedLandmark in landmark) {
                     canvas.drawPoint(
                         normalizedLandmark.x() * imageWidth * scaleFactor,
@@ -60,77 +60,67 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     )
                 }
 
-                // Retrieve elbow and shoulder landmarks
-                val leftShoulder = landmark[11]  // LEFT_SHOULDER
-                val leftElbow = landmark[13]     // LEFT_ELBOW
-                val leftWrist = landmark[15]     // LEFT_WRIST
-
-                val rightShoulder = landmark[12] // RIGHT_SHOULDER
-                val rightElbow = landmark[14]    // RIGHT_ELBOW
-                val rightWrist = landmark[16]    // RIGHT_WRIST
-
-                // Calculate angles
-                val poseHelper = PoseLandmarkerHelper(context = context!!)
-                val leftAngle = poseHelper.calculateAngle(leftShoulder, leftElbow, leftWrist)
-                val rightAngle = poseHelper.calculateAngle(rightShoulder, rightElbow, rightWrist)
-
-
                 // Draw skeleton lines
                 PoseLandmarker.POSE_LANDMARKS.forEach {
                     canvas.drawLine(
-                        poseLandmarkerResult.landmarks()[0][it!!.start()].x() * imageWidth * scaleFactor,
-                        poseLandmarkerResult.landmarks()[0][it.start()].y() * imageHeight * scaleFactor,
-                        poseLandmarkerResult.landmarks()[0][it.end()].x() * imageWidth * scaleFactor,
-                        poseLandmarkerResult.landmarks()[0][it.end()].y() * imageHeight * scaleFactor,
+                        landmarks[0][it!!.start()].x() * imageWidth * scaleFactor,
+                        landmarks[0][it.start()].y() * imageHeight * scaleFactor,
+                        landmarks[0][it.end()].x() * imageWidth * scaleFactor,
+                        landmarks[0][it.end()].y() * imageHeight * scaleFactor,
                         linePaint
                     )
                 }
 
-                // Draw elbow angles at elbow positions
-                drawTextOnLandmark(canvas, leftElbow, "${leftAngle.toInt()}°")
-                drawTextOnLandmark(canvas, rightElbow, "${rightAngle.toInt()}°")
+                // Draw elbow angles
+                drawAngle(canvas, landmark, 11, 13, 15) // Left Arm
+                drawAngle(canvas, landmark, 12, 14, 16) // Right Arm
             }
+            previousResults = poseLandmarkerResult
         }
     }
+
+    private fun drawAngle(canvas: Canvas, landmark: List<NormalizedLandmark>, a: Int, b: Int, c: Int) {
+        val angle = calculateAngle(landmark[a], landmark[b], landmark[c])
+        drawTextOnLandmark(canvas, landmark[b], "${angle.toInt()}°")
+    }
+
     private fun drawTextOnLandmark(canvas: Canvas, landmark: NormalizedLandmark, text: String) {
         val x = landmark.x() * imageWidth * scaleFactor
-        val y = landmark.y() * imageHeight * scaleFactor - 20  // Slightly above the elbow dot
+        val y = landmark.y() * imageHeight * scaleFactor - 20
         canvas.drawText(text, x, y, textPaint)
     }
-    private val textPaint = Paint().apply {
-        color = Color.YELLOW
-        textSize = 40f
-        typeface = android.graphics.Typeface.DEFAULT_BOLD
+
+    private fun hasSignificantChange(newResults: PoseLandmarkerResult): Boolean {
+        if (previousResults == null) return true
+        val oldLandmarks = previousResults!!.landmarks().flatten()
+        val newLandmarks = newResults.landmarks().flatten()
+        return oldLandmarks.zip(newLandmarks).any { (old, new) ->
+            val dx = old.x() - new.x()
+            val dy = old.y() - new.y()
+            dx * dx + dy * dy > MOVEMENT_THRESHOLD
+        }
     }
 
+    private fun calculateAngle(a: NormalizedLandmark, b: NormalizedLandmark, c: NormalizedLandmark): Double {
+        val ab = kotlin.math.sqrt((b.x() - a.x()).pow(2) + (b.y() - a.y()).pow(2))
+        val bc = kotlin.math.sqrt((c.x() - b.x()).pow(2) + (c.y() - b.y()).pow(2))
+        val ac = kotlin.math.sqrt((c.x() - a.x()).pow(2) + (c.y() - a.y()).pow(2))
+        return Math.toDegrees(kotlin.math.acos((ab.pow(2) + bc.pow(2) - ac.pow(2)) / (2 * ab * bc)).toDouble())
+    }
 
-    fun setResults(
-        poseLandmarkerResults: PoseLandmarkerResult,
-        imageHeight: Int,
-        imageWidth: Int,
-        runningMode: RunningMode = RunningMode.IMAGE
-    ) {
+    fun setResults(poseLandmarkerResults: PoseLandmarkerResult, imageHeight: Int, imageWidth: Int, runningMode: RunningMode = RunningMode.IMAGE) {
         results = poseLandmarkerResults
-
         this.imageHeight = imageHeight
         this.imageWidth = imageWidth
-
         scaleFactor = when (runningMode) {
-            RunningMode.IMAGE,
-            RunningMode.VIDEO -> {
-                min(width * 1f / imageWidth, height * 1f / imageHeight)
-            }
-            RunningMode.LIVE_STREAM -> {
-                // PreviewView is in FILL_START mode. So we need to scale up the
-                // landmarks to match with the size that the captured images will be
-                // displayed.
-                max(width * 1f / imageWidth, height * 1f / imageHeight)
-            }
+            RunningMode.IMAGE, RunningMode.VIDEO -> min(width * 1f / imageWidth, height * 1f / imageHeight)
+            RunningMode.LIVE_STREAM -> max(width * 1f / imageWidth, height * 1f / imageHeight)
         }
         invalidate()
     }
 
     companion object {
         private const val LANDMARK_STROKE_WIDTH = 12F
+        private const val MOVEMENT_THRESHOLD = 0.001  // Adjust this based on your needs
     }
 }

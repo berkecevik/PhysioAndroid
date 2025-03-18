@@ -21,11 +21,11 @@ import kotlinx.coroutines.*
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 
 class PoseLandmarkerHelper(
-    var minPoseDetectionConfidence: Float = 0.3F,
+    var minPoseDetectionConfidence: Float = DEFAULT_POSE_DETECTION_CONFIDENCE,
     var minPoseTrackingConfidence: Float = DEFAULT_POSE_TRACKING_CONFIDENCE,
     var minPosePresenceConfidence: Float = DEFAULT_POSE_PRESENCE_CONFIDENCE,
     var currentModel: Int = MODEL_POSE_LANDMARKER_LITE,
-    var currentDelegate: Int = DELEGATE_CPU,
+    var currentDelegate: Int = DELEGATE_GPU,
     var runningMode: RunningMode = RunningMode.IMAGE,
     val context: Context,
     // this listener is only used when running in RunningMode.LIVE_STREAM
@@ -69,13 +69,8 @@ class PoseLandmarkerHelper(
             }
         }
 
-        val modelName =
-            when (currentModel) {
-                MODEL_POSE_LANDMARKER_FULL -> "pose_landmarker_full.task"
-                MODEL_POSE_LANDMARKER_LITE -> "pose_landmarker_lite.task"
-                MODEL_POSE_LANDMARKER_HEAVY -> "pose_landmarker_heavy.task"
-                else -> "pose_landmarker_full.task"
-            }
+        val modelName = "pose_landmarker_lite.task"  // Load only the Lite model
+
 
         baseOptionBuilder.setModelAssetPath(modelName)
 
@@ -150,13 +145,14 @@ class PoseLandmarkerHelper(
         }
 
         frameSkipCounter++
-        if (frameSkipCounter % 2 != 0) {  // ✅ Skip every other frame to reduce load
+        if (frameSkipCounter % 1 != 0) {  // Skip every other frame to reduce load, change this if it is laggy
             imageProxy.close()
             return
         }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+
                 val frameTime = SystemClock.uptimeMillis()
 
                 val bitmapBuffer = Bitmap.createBitmap(
@@ -395,15 +391,14 @@ class PoseLandmarkerHelper(
 
         const val DELEGATE_CPU = 0
         const val DELEGATE_GPU = 1
-        const val DEFAULT_POSE_DETECTION_CONFIDENCE = 0.5F
-        const val DEFAULT_POSE_TRACKING_CONFIDENCE = 0.5F
+        const val DEFAULT_POSE_DETECTION_CONFIDENCE = 0.2F
+        const val DEFAULT_POSE_TRACKING_CONFIDENCE = 0.3F
         const val DEFAULT_POSE_PRESENCE_CONFIDENCE = 0.5F
         const val DEFAULT_NUM_POSES = 1
         const val OTHER_ERROR = 0
         const val GPU_ERROR = 1
-        const val MODEL_POSE_LANDMARKER_FULL = 0
         const val MODEL_POSE_LANDMARKER_LITE = 1
-        const val MODEL_POSE_LANDMARKER_HEAVY = 2
+
     }
 
     data class ResultBundle(
