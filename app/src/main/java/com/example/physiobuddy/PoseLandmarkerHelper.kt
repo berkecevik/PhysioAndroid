@@ -1,18 +1,3 @@
-/*
- * Copyright 2023 The TensorFlow Authors. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.physiobuddy
 
 import android.content.Context
@@ -31,12 +16,15 @@ import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
+import kotlin.math.*
+import kotlinx.coroutines.*
+import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 
 class PoseLandmarkerHelper(
-    var minPoseDetectionConfidence: Float = DEFAULT_POSE_DETECTION_CONFIDENCE,
+    var minPoseDetectionConfidence: Float = 0.3F,
     var minPoseTrackingConfidence: Float = DEFAULT_POSE_TRACKING_CONFIDENCE,
     var minPosePresenceConfidence: Float = DEFAULT_POSE_PRESENCE_CONFIDENCE,
-    var currentModel: Int = MODEL_POSE_LANDMARKER_FULL,
+    var currentModel: Int = MODEL_POSE_LANDMARKER_LITE,
     var currentDelegate: Int = DELEGATE_CPU,
     var runningMode: RunningMode = RunningMode.IMAGE,
     val context: Context,
@@ -150,52 +138,60 @@ class PoseLandmarkerHelper(
     }
 
     // Convert the ImageProxy to MP Image and feed it to PoselandmakerHelper.
+    private var frameSkipCounter = 0  // Frame skipping counter
+
     fun detectLiveStream(
         imageProxy: ImageProxy,
         isFrontCamera: Boolean
     ) {
         if (runningMode != RunningMode.LIVE_STREAM) {
-            throw IllegalArgumentException(
-                "Attempting to call detectLiveStream" +
-                        " while not using RunningMode.LIVE_STREAM"
-            )
+            imageProxy.close()
+            return
         }
-        val frameTime = SystemClock.uptimeMillis()
 
-        // Copy out RGB bits from the frame to a bitmap buffer
-        val bitmapBuffer =
-            Bitmap.createBitmap(
-                imageProxy.width,
-                imageProxy.height,
-                Bitmap.Config.ARGB_8888
-            )
+        frameSkipCounter++
+        if (frameSkipCounter % 2 != 0) {  // ✅ Skip every other frame to reduce load
+            imageProxy.close()
+            return
+        }
 
-        imageProxy.use { bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer) }
-        imageProxy.close()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val frameTime = SystemClock.uptimeMillis()
 
-        val matrix = Matrix().apply {
-            // Rotate the frame received from the camera to be in the same direction as it'll be shown
-            postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
-
-            // flip image if user use front camera
-            if (isFrontCamera) {
-                postScale(
-                    -1f,
-                    1f,
-                    imageProxy.width.toFloat(),
-                    imageProxy.height.toFloat()
+                val bitmapBuffer = Bitmap.createBitmap(
+                    imageProxy.width,
+                    imageProxy.height,
+                    Bitmap.Config.ARGB_8888
                 )
+
+                imageProxy.use {
+                    bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer)
+                }
+
+                val matrix = Matrix().apply {
+                    postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
+
+                    if (isFrontCamera) {  // ✅ Flip for front camera
+                        postScale(-1f, 1f, imageProxy.width.toFloat(), imageProxy.height.toFloat())
+                    }
+                }
+
+                val rotatedBitmap = Bitmap.createBitmap(
+                    bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height, matrix, true
+                )
+
+                val mpImage = BitmapImageBuilder(rotatedBitmap).build()
+
+                withContext(Dispatchers.Default) {  // ✅ Run inference on background thread
+                    detectAsync(mpImage, frameTime)
+                }
+            } catch (e: Exception) {
+                Log.e("PoseLandmarkerHelper", "Error processing image: ${e.localizedMessage}")
+            } finally {
+                imageProxy.close()  // ✅ Always close to avoid memory leaks
             }
         }
-        val rotatedBitmap = Bitmap.createBitmap(
-            bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height,
-            matrix, true
-        )
-
-        // Convert the input Bitmap object to an MPImage object to run inference
-        val mpImage = BitmapImageBuilder(rotatedBitmap).build()
-
-        detectAsync(mpImage, frameTime)
     }
 
     // Run pose landmark using MediaPipe Pose Landmarker API
@@ -298,6 +294,17 @@ class PoseLandmarkerHelper(
         }
     }
 
+    fun calculateAngle(a: NormalizedLandmark, b: NormalizedLandmark, c: NormalizedLandmark): Double {
+        val ab = sqrt((b.x() - a.x()).pow(2) + (b.y() - a.y()).pow(2))
+        val bc = sqrt((c.x() - b.x()).pow(2) + (c.y() - b.y()).pow(2))
+        val ac = sqrt((c.x() - a.x()).pow(2) + (c.y() - a.y()).pow(2))
+
+        return Math.toDegrees(acos((ab.pow(2) + bc.pow(2) - ac.pow(2)) / (2 * ab * bc)).toDouble())
+    }
+
+
+
+
     // Accepted a Bitmap and runs pose landmarker inference on it to return
     // results back to the caller
     fun detectImage(image: Bitmap): ResultBundle? {
@@ -334,6 +341,26 @@ class PoseLandmarkerHelper(
         )
         return null
     }
+    fun processPoseResults(result: PoseLandmarkerResult) {
+        if (result.landmarks().isNotEmpty()) {
+            val landmarks: List<NormalizedLandmark> = result.landmarks()[0] // First detected pose
+
+            val leftShoulder = landmarks[11]  // LEFT_SHOULDER
+            val leftElbow = landmarks[13]     // LEFT_ELBOW
+            val leftWrist = landmarks[15]     // LEFT_WRIST
+
+            val rightShoulder = landmarks[12] // RIGHT_SHOULDER
+            val rightElbow = landmarks[14]    // RIGHT_ELBOW
+            val rightWrist = landmarks[16]    // RIGHT_WRIST
+
+            val leftElbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist)
+            val rightElbowAngle = calculateAngle(rightShoulder, rightElbow, rightWrist)
+
+            Log.d("PoseLandmarkerHelper", "Left Elbow Angle: ${leftElbowAngle.toInt()}°")
+            Log.d("PoseLandmarkerHelper", "Right Elbow Angle: ${rightElbowAngle.toInt()}°")
+        }
+    }
+
 
     // Return the landmark result to this PoseLandmarkerHelper's caller
     private fun returnLivestreamResult(
@@ -342,6 +369,8 @@ class PoseLandmarkerHelper(
     ) {
         val finishTimeMs = SystemClock.uptimeMillis()
         val inferenceTime = finishTimeMs - result.timestampMs()
+
+        processPoseResults(result)
 
         poseLandmarkerHelperListener?.onResults(
             ResultBundle(
