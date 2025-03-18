@@ -1,18 +1,3 @@
-/*
- * Copyright 2023 The TensorFlow Authors. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.physiobuddy
 
 import android.content.Context
@@ -25,6 +10,7 @@ import androidx.core.content.ContextCompat
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
+import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import kotlin.math.max
 import kotlin.math.min
 
@@ -65,8 +51,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         results?.let { poseLandmarkerResult ->
-            for(landmark in poseLandmarkerResult.landmarks()) {
-                for(normalizedLandmark in landmark) {
+            for (landmark in poseLandmarkerResult.landmarks()) {
+                for (normalizedLandmark in landmark) {
                     canvas.drawPoint(
                         normalizedLandmark.x() * imageWidth * scaleFactor,
                         normalizedLandmark.y() * imageHeight * scaleFactor,
@@ -74,17 +60,49 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     )
                 }
 
+                // Retrieve elbow and shoulder landmarks
+                val leftShoulder = landmark[11]  // LEFT_SHOULDER
+                val leftElbow = landmark[13]     // LEFT_ELBOW
+                val leftWrist = landmark[15]     // LEFT_WRIST
+
+                val rightShoulder = landmark[12] // RIGHT_SHOULDER
+                val rightElbow = landmark[14]    // RIGHT_ELBOW
+                val rightWrist = landmark[16]    // RIGHT_WRIST
+
+                // Calculate angles
+                val poseHelper = PoseLandmarkerHelper(context = context!!)
+                val leftAngle = poseHelper.calculateAngle(leftShoulder, leftElbow, leftWrist)
+                val rightAngle = poseHelper.calculateAngle(rightShoulder, rightElbow, rightWrist)
+
+
+                // Draw skeleton lines
                 PoseLandmarker.POSE_LANDMARKS.forEach {
                     canvas.drawLine(
-                        poseLandmarkerResult.landmarks().get(0).get(it!!.start()).x() * imageWidth * scaleFactor,
-                        poseLandmarkerResult.landmarks().get(0).get(it.start()).y() * imageHeight * scaleFactor,
-                        poseLandmarkerResult.landmarks().get(0).get(it.end()).x() * imageWidth * scaleFactor,
-                        poseLandmarkerResult.landmarks().get(0).get(it.end()).y() * imageHeight * scaleFactor,
-                        linePaint)
+                        poseLandmarkerResult.landmarks()[0][it!!.start()].x() * imageWidth * scaleFactor,
+                        poseLandmarkerResult.landmarks()[0][it.start()].y() * imageHeight * scaleFactor,
+                        poseLandmarkerResult.landmarks()[0][it.end()].x() * imageWidth * scaleFactor,
+                        poseLandmarkerResult.landmarks()[0][it.end()].y() * imageHeight * scaleFactor,
+                        linePaint
+                    )
                 }
+
+                // Draw elbow angles at elbow positions
+                drawTextOnLandmark(canvas, leftElbow, "${leftAngle.toInt()}°")
+                drawTextOnLandmark(canvas, rightElbow, "${rightAngle.toInt()}°")
             }
         }
     }
+    private fun drawTextOnLandmark(canvas: Canvas, landmark: NormalizedLandmark, text: String) {
+        val x = landmark.x() * imageWidth * scaleFactor
+        val y = landmark.y() * imageHeight * scaleFactor - 20  // Slightly above the elbow dot
+        canvas.drawText(text, x, y, textPaint)
+    }
+    private val textPaint = Paint().apply {
+        color = Color.YELLOW
+        textSize = 40f
+        typeface = android.graphics.Typeface.DEFAULT_BOLD
+    }
+
 
     fun setResults(
         poseLandmarkerResults: PoseLandmarkerResult,
