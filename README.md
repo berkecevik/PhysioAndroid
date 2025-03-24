@@ -65,13 +65,13 @@ Or via Android Studio:
 ## 📂 Project Structure
 
 📦 PhysioBuddy/
-├── MainActivity.kt                # Hosts fragments and bottom navigation
-├── MainViewModel.kt              # Stores and manages pose settings
-├── CameraFragment.kt             # Camera input + live pose tracking
-├── GalleryFragment.kt            # Image/video input + analysis
-├── PermissionsFragment.kt        # Handles camera permission request
-├── OverlayView.kt                # Draws pose landmarks and joint angles
-├── PoseLandmarkerHelper.kt       # ML logic using MediaPipe
+├── MainActivity.kt
+├── MainViewModel.kt
+├── CameraFragment.kt
+├── GalleryFragment.kt
+├── PermissionsFragment.kt
+├── OverlayView.kt
+├── PoseLandmarkerHelper.kt
 ├── res/
 │   ├── layout/
 │   │   ├── activity_main.xml
@@ -84,5 +84,5 @@ Or via Android Studio:
 │   │   ├── dimens.xml
 │   │   ├── styles.xml
 │   │   ├── themes.xml
-├── AndroidManifest.xml           # App metadata and permissions
-├── build.gradle.kts              # Dependency and plugin configurations
+├── AndroidManifest.xml
+├── build.gradle.kts
