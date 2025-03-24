@@ -1,4 +1,4 @@
-# 🏃‍♂️ PhysioBuddy – Real-time Pose Estimation App
+# 🏃‍♂️ PhysioBuddy 
 
 **PhysioBuddy** is an AI-powered physiotherapy assistant that helps users track their body posture and movement in real-time using **MediaPipe Pose Landmarker Lite**. It’s designed for use in physical rehabilitation, fitness tracking, and movement analysis.
 
@@ -63,6 +63,7 @@ Or via Android Studio:
 ---
 
 ## 📂 Project Structure
+
 📦 PhysioBuddy/
 ├── MainActivity.kt                # Hosts fragments and bottom navigation
 ├── MainViewModel.kt              # Stores and manages pose settings
