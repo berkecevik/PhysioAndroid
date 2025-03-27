@@ -69,7 +69,13 @@ class PoseLandmarkerHelper(
             }
         }
 
-        val modelName = "pose_landmarker_lite.task"  // Load only the Lite model
+        val modelName =
+            when (currentModel) {
+                MODEL_POSE_LANDMARKER_FULL -> "pose_landmarker_full.task"
+                MODEL_POSE_LANDMARKER_LITE -> "pose_landmarker_lite.task"
+                else -> "pose_landmarker_lite.task"
+            }
+
 
 
         baseOptionBuilder.setModelAssetPath(modelName)
@@ -398,6 +404,7 @@ class PoseLandmarkerHelper(
         const val OTHER_ERROR = 0
         const val GPU_ERROR = 1
         const val MODEL_POSE_LANDMARKER_LITE = 1
+        const val MODEL_POSE_LANDMARKER_FULL = 0
 
     }
 
