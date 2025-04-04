@@ -1,15 +1,16 @@
 package com.example.physiobuddy
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.physiobuddy.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var activityMainBinding: ActivityMainBinding
-    private val viewModel : MainViewModel by viewModels()
+    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,9 +20,17 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
+
         activityMainBinding.navigation.setupWithNavController(navController)
         activityMainBinding.navigation.setOnNavigationItemReselectedListener {
             // ignore the reselection
+        }
+
+        // 🟢 Hides BottomNav and Toolbar on LandingFragment
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val isLanding = destination.id == R.id.landing_fragment
+            activityMainBinding.navigation.visibility = if (isLanding) View.GONE else View.VISIBLE
+            activityMainBinding.toolbar.visibility = if (isLanding) View.GONE else View.VISIBLE
         }
     }
 
