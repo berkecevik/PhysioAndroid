@@ -20,8 +20,9 @@ class LandingFragment : Fragment() {
         _binding = FragmentLandingBinding.inflate(inflater, container, false)
 
         binding.startButton.setOnClickListener {
-            findNavController().navigate(R.id.action_landingFragment_to_permissionsFragment)
+            findNavController().navigate(R.id.action_landingFragment_to_introFragment)
         }
+
 
         return binding.root
     }
