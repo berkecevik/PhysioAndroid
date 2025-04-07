@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        android:padding="32dp">
+
+        <!-- Logo near top -->
+        <ImageView
+            android:id="@+id/landing_image"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="167dp"
+            android:src="@drawable/logo"
+            tools:ignore="ContentDescription" />
+
+        <!-- Text directly below logo -->
+        <TextView
+            android:id="@+id/landing_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/landing_image"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"
+            android:text="Physiotherapy"
+            android:textColor="@android:color/black"
+            android:textSize="24sp"
+            android:textStyle="normal"
+            android:fontFamily="@font/kode_mono"
+            />
+
+        <!-- Plain clickable text at bottom -->
+        <TextView
+            android:id="@+id/start_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="36dp"
+            android:text="Tap to start..."
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:fontFamily="@font/kode_mono"
+            android:clickable="true"
+            android:focusable="true" />
+    </RelativeLayout>
+</layout>

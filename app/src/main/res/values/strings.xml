@@ -1,21 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    ~ Copyright 2023 The TensorFlow Authors. All Rights Reserved.
-    ~
-    ~ Licensed under the Apache License, Version 2.0 (the "License");
-    ~ you may not use this file except in compliance with the License.
-    ~ You may obtain a copy of the License at
-    ~
-    ~       http://www.apache.org/licenses/LICENSE-2.0
-    ~
-    ~ Unless required by applicable law or agreed to in writing, software
-    ~ distributed under the License is distributed on an "AS IS" BASIS,
-    ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    ~ See the License for the specific language governing permissions and
-    ~ limitations under the License.
--->
 <resources>
-    <string name="app_name">Pose Landmarker</string>
+    <string name="app_name">Physio</string>
 
     <string name="media_pipe">MediaPipe</string>
 
@@ -55,4 +40,29 @@
         <item>Pose Landmarker Full</item>
         <item>Pose Landmarker Lite</item>
     </string-array>
+
+    <string name="intro1_title">Welcome Laura</string>
+    <string name="intro1_subtitle">Let me give you a quick tour...</string>
+    <string name="intro1_description">This is your body. It is composed by parts unified by joints.</string>
+
+    <string name="intro2_title">My eyes are not as good as yours</string>
+    <string name="intro2_subtitle">So instead of your handsome body i will actually see you like this...</string>
+    <string name="intro2_description">This way i can understand every movement you make</string>
+
+    <string name="intro3_title">The camera on your phone will be my eyes.</string>
+    <string name="intro3_subtitle">Through them i will see your position, and instruct you how should you move.</string>
+    <string name="intro3_description">But don’t worry you still lead the pace and we will walk through exercises together</string>
+
+    <string name="intro4_title"></string> <!-- Empty -->
+    <string name="intro4_subtitle">I will show you in orange how am i perceiving your movement</string>
+    <string name="intro4_description">Visualize improvement over time.</string>
+
+    <string name="intro5_title">If you move correctly you will notice that you are in green!</string>
+    <string name="intro5_subtitle">You will also see an indicator of how long you should keep that position</string>
+    <string name="intro5_description">There is not right or wrong attempts, i will record your performance and use this information for the next session!</string>
+
+    <string name="intro6_title"></string> <!-- Empty -->
+    <string name="intro6_subtitle">Sometimes i will need to see you from the front, sometimes from the side to guide you better...</string>
+    <string name="intro6_description">Your phone must be well positioned, but we will come to that later, are you ready?</string>
+
 </resources>
