@@ -32,7 +32,7 @@ class IntroFragment : Fragment() {
             if (currentItem < introAdapter.itemCount - 1) {
                 viewPager.currentItem = currentItem + 1
             } else {
-                findNavController().navigate(R.id.action_introFragment_to_permissionsFragment)
+                findNavController().navigate(R.id.action_introFragment_to_loginFragment)
             }
         }
 

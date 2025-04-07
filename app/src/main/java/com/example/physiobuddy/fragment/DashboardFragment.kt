@@ -6,27 +6,22 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.example.physiobuddy.databinding.FragmentLandingBinding
+import com.example.physiobuddy.databinding.FragmentDashboardBinding
 
-class LandingFragment : Fragment() {
+class DashboardFragment : Fragment() {
 
-    private var _binding: FragmentLandingBinding? = null
+    private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentLandingBinding.inflate(inflater, container, false)
+        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
 
-        binding.skipToCameraButton.setOnClickListener {
-            findNavController().navigate(R.id.action_landingFragment_to_permissions_fragment)
+        binding.goToCameraButton.setOnClickListener {
+            findNavController().navigate(R.id.action_dashboardFragment_to_permissions_fragment)
         }
-
-        binding.startButton.setOnClickListener {
-            findNavController().navigate(R.id.action_landingFragment_to_introFragment)
-        }
-
 
         return binding.root
     }

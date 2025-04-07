@@ -41,6 +41,27 @@
         <item>Pose Landmarker Lite</item>
     </string-array>
 
+    <string-array name="gender_options">
+        <item>Gender</item> <!-- title item -->
+        <item>Male</item>
+        <item>Female</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="disability_options">
+        <item>Disability Status</item> <!-- title item -->
+        <item>A</item>
+        <item>B</item>
+    </string-array>
+
+    <string-array name="country_options">
+        <item>Country</item> <!-- title item -->
+        <item>Germany</item>
+        <item>Turkey</item>
+        <item>India</item>
+        <item>Colombia</item>
+    </string-array>
+
     <string name="intro1_title">Welcome Laura</string>
     <string name="intro1_subtitle">Let me give you a quick tour...</string>
     <string name="intro1_description">This is your body. It is composed by parts unified by joints.</string>
