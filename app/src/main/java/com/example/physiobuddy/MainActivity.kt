@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         // 🟢 Hides BottomNav and Toolbar on LandingFragment
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val hideBottomNav = destination.id == R.id.landing_fragment || destination.id == R.id.introFragment
+            val hideBottomNav = destination.id == R.id.landing_fragment || destination.id == R.id.introFragment || destination.id == R.id.loginFragment || destination.id == R.id.registerFragment || destination.id == R.id.dashboardFragment
             activityMainBinding.navigation.visibility = if (hideBottomNav) View.GONE else View.VISIBLE
         }
 

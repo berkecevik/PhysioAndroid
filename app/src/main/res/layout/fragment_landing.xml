@@ -34,6 +34,17 @@
             android:fontFamily="@font/kode_mono"
             />
 
+        <Button
+            android:id="@+id/skipToCameraButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/start_button"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:text="Skip to Camera"
+            android:backgroundTint="@android:color/holo_blue_dark"
+            android:textColor="@android:color/white"/>
+
         <!-- Plain clickable text at bottom -->
         <TextView
             android:id="@+id/start_button"
