@@ -28,10 +28,10 @@ class MainActivity : AppCompatActivity() {
 
         // 🟢 Hides BottomNav and Toolbar on LandingFragment
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val isLanding = destination.id == R.id.landing_fragment
-            activityMainBinding.navigation.visibility = if (isLanding) View.GONE else View.VISIBLE
-            activityMainBinding.toolbar.visibility = if (isLanding) View.GONE else View.VISIBLE
+            val hideBottomNav = destination.id == R.id.landing_fragment || destination.id == R.id.introFragment
+            activityMainBinding.navigation.visibility = if (hideBottomNav) View.GONE else View.VISIBLE
         }
+
     }
 
     override fun onBackPressed() {

@@ -15,7 +15,7 @@
     ~ limitations under the License.
 -->
 <resources>
-    <color name="mp_color_primary">#B00020</color>
+    <color name="mp_color_primary">#6D0080</color>
     <color name="mp_color_primary_variant">#12B5CB</color>
     <color name="mp_color_primary_dark">#00676D</color>
     <color name="mp_color_secondary">#FBBC04</color>

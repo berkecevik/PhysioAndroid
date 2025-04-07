@@ -40,13 +40,15 @@ class IntroFragment : Fragment() {
     }
 
     private fun getIntroItems(): List<IntroItem> {
+        val context = requireContext()
         return listOf(
-            IntroItem(R.drawable.intro1, "Welcome Laura", "Let me give you a quick tour...","This is your body. It is composed by parts unifidied by joints."),
-            IntroItem(R.drawable.intro2, "My eyes are not as good as yours", "So instead of your handsome body i will actually see you like this...","This way i can understand every movement you make"),
-            //IntroItem(R.drawable.intro3, "Pose Detection", "Real-time analysis of your movements."),
-            //IntroItem(R.drawable.intro4, "Track Progress", "Visualize improvement over time."),
-            //IntroItem(R.drawable.intro5, "Privacy First", "Your data stays on your device."),
-            //IntroItem(R.drawable.intro6, "Let’s begin!", "Click below to get started!")
+            IntroItem(R.drawable.intro1, context.getString(R.string.intro1_title), context.getString(R.string.intro1_subtitle), context.getString(R.string.intro1_description)),
+            IntroItem(R.drawable.intro2, context.getString(R.string.intro2_title), context.getString(R.string.intro2_subtitle), context.getString(R.string.intro2_description)),
+            IntroItem(R.drawable.intro3, context.getString(R.string.intro3_title), context.getString(R.string.intro3_subtitle), context.getString(R.string.intro3_description)),
+            IntroItem(R.drawable.intro4, context.getString(R.string.intro4_title), context.getString(R.string.intro4_subtitle), context.getString(R.string.intro4_description)),
+            IntroItem(R.drawable.intro5, context.getString(R.string.intro5_title), context.getString(R.string.intro5_subtitle), context.getString(R.string.intro5_description)),
+            IntroItem(R.drawable.intro6, context.getString(R.string.intro6_title), context.getString(R.string.intro6_subtitle), context.getString(R.string.intro6_description))
         )
     }
+
 }
