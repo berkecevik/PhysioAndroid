@@ -40,10 +40,6 @@ android {
     }
 }
 
-// Import DownloadMPTasks task
-project.extra["ASSET_DIR"] = "${projectDir}/src/main/assets"
-apply(from = "download_tasks.gradle")
-
 dependencies {
     // Kotlin lang
     implementation("androidx.core:core-ktx:1.8.0")
@@ -76,6 +72,4 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
-    // MediaPipe Library
-    implementation("com.google.mediapipe:tasks-vision:0.10.14")
 }
