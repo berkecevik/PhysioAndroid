@@ -6,9 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.physiobuddy.databinding.FragmentRegisterBinding
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.physiobuddy.api.RetrofitInstance
+import com.example.physiobuddy.models.RegisterRequest
+
 
 class RegisterFragment : Fragment() {
 
@@ -40,8 +46,21 @@ class RegisterFragment : Fragment() {
             ) {
                 Toast.makeText(requireContext(), "Please fill all required fields correctly", Toast.LENGTH_SHORT).show()
             } else {
-                // TODO: Perform registration using backend API
-                findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
+                lifecycleScope.launch {
+                    val request = RegisterRequest(email, password)
+                    try {
+                        val response = RetrofitInstance.api.register(request)
+                        if (response.isSuccessful) {
+                            Toast.makeText(requireContext(), "Registered successfully", Toast.LENGTH_SHORT).show()
+                            findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
+                        } else {
+                            Toast.makeText(requireContext(), "Registration failed", Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(requireContext(), "Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
             }
         }
 
